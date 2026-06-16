@@ -1,0 +1,15 @@
+.gradle
+.idea
+.intellijPlatform
+build
+
+# .NET backend build output
+src/dotnet/**/bin/
+src/dotnet/**/obj/
+
+# Generated rd protocol code (produced by :protocol:rdgen)
+src/dotnet/ComponentInvestigation.Rider/Model/Generated/
+
+# Exported reports
+.relations/
+plan.md

@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>ComponentInvestigation.Rider</RootNamespace>
+    <AssemblyName>ComponentInvestigation.Rider</AssemblyName>
+  </PropertyGroup>
+
+  <!-- The generated rd model under Model/Generated/ is picked up automatically by the SDK's
+       default Compile items, so no explicit <Compile Include> is needed. -->
+
+  <ItemGroup>
+    <!-- Resolve NU1107: the Rider SDK graph pulls System.Diagnostics.TraceSource at both
+         =4.0.0 (IIS backend) and >=4.3.0 (Castle.Core via the bundled test framework). A direct
+         reference wins over the transitive ones. On net8.0 this type lives in the BCL anyway. -->
+    <PackageReference Include="System.Diagnostics.TraceSource" Version="4.3.0" />
+  </ItemGroup>
+
+</Project>

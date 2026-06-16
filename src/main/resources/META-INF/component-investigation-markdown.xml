@@ -1,0 +1,11 @@
+<!-- Loaded only when the Markdown plugin (org.intellij.plugins.markdown) is enabled. -->
+<idea-plugin>
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- Replace the platform's Markdown link opener so `path:line` links in our exported
+             reports navigate to the file at the line. Falls back to browser for external links. -->
+        <applicationService
+            serviceInterface="org.intellij.plugins.markdown.ui.preview.accessor.MarkdownLinkOpener"
+            serviceImplementation="com.componentinvestigation.RelationMarkdownLinkOpener"
+            overrides="true"/>
+    </extensions>
+</idea-plugin>

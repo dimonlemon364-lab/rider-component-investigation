@@ -1,0 +1,8 @@
+[versions]
+junit = "4.13.2"
+
+[libraries]
+junit = { module = "junit:junit", version.ref = "junit" }
+# rd protocol generator + model, consumed by the :protocol subproject.
+# Version is taken from the `rdGenVersion` gradle property.
+rd-gen = { module = "com.jetbrains.rd:rd-gen" }
