@@ -4,6 +4,20 @@
 
 ## Unreleased
 
+## 1.0.4 - 2026-06-17
+
+### Fixed
+
+- **VB usage navigation**: usages in files without real frontend PSI (e.g. `*.ascx.vb`) no longer
+  jump to line 1. Navigation is now anchored on the backend-reported line (the same value the
+  Markdown export uses), trusting the precise offset only when it lands on that line.
+
+### Changed
+
+- **Removed internal-platform-API usage** (flagged by JetBrains Marketplace). The custom
+  "Group by Folder Tree" action is dropped in favour of the platform's built-in
+  **Group by Directory Structure** toggle, which provides the same folder-tree / flat switch.
+
 ## 1.0.3 - 2026-06-17
 
 ### Added

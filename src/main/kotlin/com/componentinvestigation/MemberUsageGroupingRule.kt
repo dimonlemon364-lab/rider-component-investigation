@@ -1,17 +1,11 @@
 package com.componentinvestigation
 
-import com.intellij.icons.AllIcons
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
 import com.intellij.usages.Usage
 import com.intellij.usages.UsageGroup
 import com.intellij.usages.UsageTarget
-import com.intellij.usages.UsageView
-import com.intellij.usages.impl.actions.RuleAction
 import com.intellij.usages.rules.UsageGroupingRule
 import com.intellij.usages.rules.UsageGroupingRuleProvider
-import java.util.function.Supplier
 import javax.swing.Icon
 
 /**
@@ -58,24 +52,6 @@ class RelationGroupingRuleProvider : UsageGroupingRuleProvider {
     override fun getActiveRules(project: Project): Array<UsageGroupingRule> =
         arrayOf(MemberUsageGroupingRule())
 
-    // Adds a "folder tree vs flat" switcher to the Find Usages grouping toolbar.
-    // RuleAction resolves the target view from the action event, so no view arg is needed.
-    override fun createGroupingActions(view: UsageView): Array<AnAction> =
-        arrayOf(FolderTreeToggleAction())
-}
-
-/**
- * Toggles the results between a folder tree and a flat list. Extends the platform's [RuleAction]
- * (same package as the view), which re-applies the grouping rules after the option changes.
- */
-private class FolderTreeToggleAction : RuleAction(
-    Supplier { "Group by Folder Tree" },
-    AllIcons.Nodes.Folder,
-) {
-    override fun getOptionValue(e: AnActionEvent): Boolean =
-        getUsageViewSettings(e).isGroupByDirectoryStructure
-
-    override fun setOptionValue(e: AnActionEvent, value: Boolean) {
-        getUsageViewSettings(e).isGroupByDirectoryStructure = value
-    }
+    // No custom grouping actions: the folder tree / flat switch (UsageGrouping.DirectoryStructure)
+    // and the rest of the standard grouping toolbar are provided by the platform's built-in actions.
 }
