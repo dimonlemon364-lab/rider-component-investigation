@@ -50,6 +50,20 @@ class RelationsUsagePresenter(private val project: Project) {
             { RelationMarkdownExporter.export(project, result) },
             "Export to Markdown",
         )
+
+        // Switch the results between member-first (member → access → file, the default) and
+        // file-first (file → member → access). A custom grouping-toolbar toggle would need internal
+        // API to force a regroup, so we flip the session flag and re-show: the fresh view re-reads
+        // MemberUsageGroupingRule.getRank() and groups accordingly.
+        val toggleLabel = if (RelationGroupingState.groupByFileFirst) "Group by Member" else "Group by File"
+        view.addButtonToLowerPane(
+            {
+                RelationGroupingState.groupByFileFirst = !RelationGroupingState.groupByFileFirst
+                view.close()
+                showView(result, usages)
+            },
+            toggleLabel,
+        )
     }
 
     private fun toUsage(entry: RelationEntry): Usage? {

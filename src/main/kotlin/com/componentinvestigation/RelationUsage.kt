@@ -25,6 +25,10 @@ class RelationUsage(
     val accessOrder: Int get() = entry.accessKind.ordinal
     val accessIcon: Icon get() = accessKindIcon(entry.accessKind)
 
+    // File name (last path segment, handling both / and \ separators) for the file-first layout.
+    val fileLabel: String get() = entry.filePath.substringAfterLast('/').substringAfterLast('\\')
+    val fileIcon: Icon get() = AllIcons.FileTypes.Any_type
+
     companion object {
         fun memberKindLabel(kind: MemberKind): String = when (kind) {
             MemberKind.Class -> "Class (component)"

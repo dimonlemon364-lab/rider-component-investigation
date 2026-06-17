@@ -4,6 +4,15 @@
 
 ## Unreleased
 
+## 1.0.7 - 2026-06-17
+
+### Added
+
+- **Group by File toggle**: a button in the Relations results' lower pane switches the layout
+  between member-first (member → access type, the default) and file-first (file → member → access),
+  so you can see which members of the component are touched in each file. Implemented with public
+  API only (no internal-platform-API usage).
+
 ## 1.0.6 - 2026-06-17
 
 ### Fixed

@@ -1,12 +1,14 @@
 # Component Investigation — Show Relations for Component/Class (Rider)
 
-A JetBrains **Rider** plugin. Right-click a C#/F#/VB type → **Show Relations for Component/Class**
-to see, in the native Find Usages view, every place the class is used **and how** — usages of the
-class itself (instantiation, type usage) and of each member (methods, properties, fields,
-constants, events) — grouped by **member**, then by **access type** (read / write / invocation /
-instantiation / type usage). An **Export to Markdown** button writes the full report (with a real
-usage example per call site) to a linkable `.md` file; `path:line` links in that file open the
-target file at the line in the editor.
+A JetBrains **Rider** plugin. It adds a **Relations** Code Vision link next to *Usages* /
+*Inheritors* on any C#/F#/VB type. Click it to see, in the native Find Usages view, every place the
+class is used **and how** — usages of the class itself (instantiation, type usage) and of each
+member (methods, properties, fields, constants, events) — grouped by **member**, then by **access
+type** (read / write / invocation / instantiation / type usage). A **Group by File / Member** button
+flips the layout between member-first (member → access → file) and file-first (file → member →
+access), and an **Export to Markdown** button writes the full report (with a real usage example per
+call site) to a linkable `.md` file; `path:line` links in that file open the target file at the line
+in the editor.
 
 ## Architecture
 
@@ -20,15 +22,16 @@ Rider = IntelliJ **JVM frontend** (Kotlin) + ReSharper **.NET backend** (C#) tal
 ├── src/dotnet/                    ReSharper backend (C#)
 │   ├── ComponentInvestigation.sln
 │   └── ComponentInvestigation.Rider/
-│       ├── ShowRelationsHost.cs   [SolutionComponent] wires the getRelations rd call
+│       ├── RelationsCodeInsightsAnalyzer.cs   adds the "Relations" lens onto every type
+│       ├── RelationsCodeInsightsProvider.cs   lens click -> Find + fire showRelations rd signal
 │       ├── RelationFinder.cs      resolve type, enumerate members, FindReferences, map entries
 │       ├── AccessClassifier.cs    IReference -> Read/Write/Invocation/Instantiation/...
 │       └── Model/Generated/       generated C# model (rdgen output)
 ├── src/main/kotlin/com/componentinvestigation/   frontend (Kotlin)
-│   ├── ShowRelationsAction.kt          editor/project-view action; calls the backend
-│   ├── RelationsUsagePresenter.kt      builds usages, shows native view, adds Export button
+│   ├── RelationsProtocolListener.kt    advises showRelations; opens the native view
+│   ├── RelationsUsagePresenter.kt      builds usages, shows view, adds toggle + Export buttons
 │   ├── RelationUsage.kt                usage carrying member + access metadata
-│   ├── MemberUsageGroupingRule.kt      member -> access grouping (+ provider)
+│   ├── MemberUsageGroupingRule.kt      member -> access grouping, provider + RelationGroupingState
 │   ├── RelationMarkdownExporter.kt     renders + writes the Markdown report
 │   └── RelationMarkdownLinkOpener.kt   Markdown preview `path:line` link handler
 ├── src/main/resources/META-INF/
