@@ -1,28 +1,28 @@
 <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
     <defs>
-        <linearGradient id="ci_node" x1="4" y1="6" x2="36" y2="34" gradientUnits="userSpaceOnUse">
-            <stop stop-color="#3C99CC"/>
-            <stop offset="1" stop-color="#6B57FF"/>
+        <linearGradient id="ci_node_d" x1="4" y1="6" x2="36" y2="34" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#4FB3E0"/>
+            <stop offset="1" stop-color="#8A78FF"/>
         </linearGradient>
-        <linearGradient id="ci_core" x1="14" y1="14" x2="26" y2="26" gradientUnits="userSpaceOnUse">
-            <stop stop-color="#FFB347"/>
-            <stop offset="1" stop-color="#FF7A3D"/>
+        <linearGradient id="ci_core_d" x1="14" y1="14" x2="26" y2="26" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#FFC15E"/>
+            <stop offset="1" stop-color="#FF8A4D"/>
         </linearGradient>
     </defs>
     <!-- edges: the relations from the class to its usages -->
-    <g stroke="url(#ci_node)" stroke-width="2.2" stroke-linecap="round">
+    <g stroke="url(#ci_node_d)" stroke-width="2.2" stroke-linecap="round">
         <line x1="20" y1="20" x2="9.5" y2="10.5"/>
         <line x1="20" y1="20" x2="30.5" y2="10"/>
         <line x1="20" y1="20" x2="31.5" y2="29"/>
         <line x1="20" y1="20" x2="10" y2="30"/>
     </g>
     <!-- satellite nodes: external usages -->
-    <g fill="url(#ci_node)">
+    <g fill="url(#ci_node_d)">
         <circle cx="9.5" cy="10.5" r="3.4"/>
         <circle cx="30.5" cy="10" r="3.4"/>
         <circle cx="31.5" cy="29" r="3.4"/>
         <circle cx="10" cy="30" r="3.4"/>
     </g>
     <!-- central node: the class under investigation -->
-    <circle cx="20" cy="20" r="6.4" fill="url(#ci_core)"/>
+    <circle cx="20" cy="20" r="6.4" fill="url(#ci_core_d)"/>
 </svg>

@@ -2,6 +2,7 @@ import org.gradle.process.CommandLineArgumentProvider
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.intellij.platform.gradle.Constants.Tasks
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
+import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask
 import kotlin.io.path.exists
 
 plugins {
@@ -88,6 +89,19 @@ intellijPlatform {
 
     // `verifyPlugin` checks binary compatibility against the target IDE(s).
     pluginVerification {
+        // The plugin verifies as Compatible against the target Rider build. We knowingly use a few
+        // @Internal / @Experimental platform APIs that have no stable replacement:
+        //   - com.intellij.usages.impl.actions.RuleAction -> Folder Tree/Flat toggle in Find Usages
+        //   - org.intellij.plugins.markdown...MarkdownLinkOpener -> link nav in exported reports
+        // So we don't fail the build on those usage *warnings*, but we DO fail on real breakages
+        // (missing classes/methods, invalid plugin descriptor, missing deps, illegal extension).
+        failureLevel = listOf(
+            VerifyPluginTask.FailureLevel.COMPATIBILITY_PROBLEMS,
+            VerifyPluginTask.FailureLevel.INVALID_PLUGIN,
+            VerifyPluginTask.FailureLevel.MISSING_DEPENDENCIES,
+            VerifyPluginTask.FailureLevel.NON_EXTENDABLE_API_USAGES,
+            VerifyPluginTask.FailureLevel.OVERRIDE_ONLY_API_USAGES,
+        )
         ides {
             recommended()
         }

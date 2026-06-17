@@ -4,7 +4,20 @@
 
 ## Unreleased
 
-## 1.0.1 - 2026-06-17
+## 1.0.3 - 2026-06-17
+
+### Added
+
+- **Plugin logo**: a relations-graph icon (central class node linked to its usages) with light and
+  dark theme variants, shown in the Plugins list and on the Marketplace listing.
+
+## 1.0.2 - 2026-06-17
+
+### Changed
+
+- **Relations now shows external usages only**: usages located in the file(s) where the class is
+  declared (including all `partial`-class files) are excluded, so the class's own internal
+  self-references no longer clutter the results.
 
 ### Added
 

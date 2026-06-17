@@ -35,25 +35,36 @@ namespace ComponentInvestigation.Rider
             var finder = _solution.GetPsiServices().Finder;
             var searchDomain = SearchDomainFactory.Instance.CreateSearchDomain(_solution, false);
 
+            // The file(s) where the class itself is declared. Usages inside these are the class's own
+            // internal self-references (it reads its own fields, calls its own methods) — we only want
+            // external usage, so they are excluded. GetDeclarations() covers all partial-class files.
+            var declaringFiles = new HashSet<IPsiSourceFile>();
+            foreach (var declaration in typeElement.GetDeclarations())
+            {
+                var sourceFile = declaration.GetSourceFile();
+                if (sourceFile != null)
+                    declaringFiles.Add(sourceFile);
+            }
+
             // The type itself (instantiation, base type, fields/params of the type, generics).
-            CollectFor(typeElement, MemberKind.Class, finder, searchDomain, entries);
+            CollectFor(typeElement, MemberKind.Class, finder, searchDomain, declaringFiles, entries);
 
             // Each member.
             foreach (var member in typeElement.GetMembers())
-                CollectFor(member, KindOf(member), finder, searchDomain, entries);
+                CollectFor(member, KindOf(member), finder, searchDomain, declaringFiles, entries);
 
             return new RelationsResult(typeElement.ShortName, entries);
         }
 
         private void CollectFor(IDeclaredElement element, MemberKind kind, IFinder finder,
-            ISearchDomain searchDomain, List<RelationEntry> entries)
+            ISearchDomain searchDomain, ISet<IPsiSourceFile> excludedFiles, List<RelationEntry> entries)
         {
             var references = finder.FindReferences(element, searchDomain, NullProgressIndicator.Create());
             foreach (var reference in references)
             {
                 try
                 {
-                    var entry = ToEntry(reference, element, kind);
+                    var entry = ToEntry(reference, element, kind, excludedFiles);
                     if (entry != null)
                         entries.Add(entry);
                 }
@@ -64,14 +75,15 @@ namespace ComponentInvestigation.Rider
             }
         }
 
-        private RelationEntry ToEntry(IReference reference, IDeclaredElement element, MemberKind kind)
+        private RelationEntry ToEntry(IReference reference, IDeclaredElement element, MemberKind kind,
+            ISet<IPsiSourceFile> excludedFiles)
         {
             var node = reference.GetTreeNode();
             if (node == null)
                 return null;
 
             var sourceFile = node.GetSourceFile();
-            if (sourceFile == null)
+            if (sourceFile == null || excludedFiles.Contains(sourceFile))
                 return null;
 
             var docRange = node.GetDocumentRange();
