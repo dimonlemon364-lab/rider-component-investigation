@@ -3,8 +3,11 @@ package com.componentinvestigation
 import com.jetbrains.rd.ide.model.RelationEntry
 import com.jetbrains.rd.ide.model.RelationsResult
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.editor.Document
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiManager
 import com.intellij.usageView.UsageInfo
 import com.intellij.usages.Usage
@@ -52,8 +55,30 @@ class RelationsUsagePresenter(private val project: Project) {
     private fun toUsage(entry: RelationEntry): Usage? {
         val file = LocalFileSystem.getInstance().findFileByPath(entry.filePath) ?: return null
         val psiFile = PsiManager.getInstance(project).findFile(file) ?: return null
-        val element = psiFile.findElementAt(entry.offset) ?: psiFile
-        val usageInfo = UsageInfo(element)
-        return RelationUsage(usageInfo, entry)
+
+        // Rider's IntelliJ frontend has no real PSI for C#/VB/ASP files, so findElementAt(offset) can
+        // return a whole-file element (or null), which makes the UsageInfo span the file and navigate
+        // to line 1 (seen for *.ascx.vb). Anchor navigation on entry.line — the value the Markdown
+        // export uses and which is reliably correct — and only trust the precise offset when it
+        // actually lands on that line.
+        val document = PsiDocumentManager.getInstance(project).getDocument(psiFile)
+            ?: FileDocumentManager.getInstance().getDocument(file)
+            ?: return RelationUsage(UsageInfo(psiFile), entry)
+
+        val (start, end) = resolveRange(document, entry)
+        return RelationUsage(UsageInfo(psiFile, start, end), entry)
+    }
+
+    /** Maps a backend [RelationEntry] to an in-file text range, preferring its line over its offset. */
+    private fun resolveRange(document: Document, entry: RelationEntry): Pair<Int, Int> {
+        val lineIndex = (entry.line - 1).coerceIn(0, (document.lineCount - 1).coerceAtLeast(0))
+        val lineStart = document.getLineStartOffset(lineIndex)
+        val lineEnd = document.getLineEndOffset(lineIndex)
+
+        val offsetTrustworthy = entry.offset in 0 until document.textLength &&
+            document.getLineNumber(entry.offset) == lineIndex
+        val start = if (offsetTrustworthy) entry.offset else lineStart
+        val end = (start + entry.length).coerceIn(start, lineEnd)
+        return start to end
     }
 }
