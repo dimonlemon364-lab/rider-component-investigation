@@ -4,6 +4,26 @@
 
 ## Unreleased
 
+## 1.0.6 - 2026-06-17
+
+### Fixed
+
+- **"Wrong thread" exception on solution load**: the `showRelations` protocol subscription is now
+  set up on the UI thread (`Dispatchers.EDT`) instead of the background startup coroutine, so the
+  Relations lens wires up reliably without throwing `IllegalStateException` from `RdSignal.advise`.
+
+### Changed
+
+- Use the non-deprecated `com.intellij.openapi.rd.util.lifetime` accessor (one fewer deprecated-API
+  usage).
+
+## 1.0.5 - 2026-06-17
+
+### Changed
+
+- Maintenance re-publish of 1.0.4 (no functional changes) — carries forward the internal-platform-API
+  removal and the `*.ascx.vb` navigation fix.
+
 ## 1.0.4 - 2026-06-17
 
 ### Fixed
