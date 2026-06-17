@@ -2,7 +2,9 @@
 
 # Component-investigation Changelog
 
-## [Unreleased]
+## Unreleased
+
+## 1.0.1 - 2026-06-17
 
 ### Added
 

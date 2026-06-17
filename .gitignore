@@ -13,3 +13,6 @@ src/dotnet/ComponentInvestigation.Rider/Model/Generated/
 # Exported reports
 .relations/
 plan.md
+
+# Deploy run config — contains the Marketplace PUBLISH_TOKEN secret, must not be committed
+/.run/Run deploy.run.xml

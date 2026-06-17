@@ -45,9 +45,9 @@ intellijPlatform {
         version = providers.gradleProperty("version")
 
         ideaVersion {
-            // The ReSharper backend SDK is pinned to 2025.3, so the plugin targets only 2025.3.x.
-            sinceBuild = "253"
-            untilBuild = "253.*"
+            // The ReSharper backend SDK is pinned to 2026.1, so the plugin targets only 2026.1.x.
+            sinceBuild = "261"
+            untilBuild = "261.*"
         }
 
         vendor {
