@@ -5,7 +5,7 @@ import com.jetbrains.rd.ide.model.RelationsResult
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
 import java.io.File
@@ -31,7 +31,10 @@ object RelationMarkdownExporter {
 
             ApplicationManager.getApplication().invokeLater {
                 if (vFile != null) {
-                    FileEditorManager.getInstance(project).openFile(vFile, true)
+                    // Open via OpenFileDescriptor (plain platform class) rather than
+                    // FileEditorManager.getInstance: in 2026.3 the latter resolves through a Kotlin
+                    // companion that doesn't exist on 261/262, breaking binary compatibility.
+                    OpenFileDescriptor(project, vFile).navigate(true)
                 }
                 notify(project, "Exported ${result.entries.size} relations to ${outFile.name}")
             }

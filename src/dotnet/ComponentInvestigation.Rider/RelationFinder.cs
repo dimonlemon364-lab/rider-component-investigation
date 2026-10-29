@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using JetBrains.Application.Parts;
 using JetBrains.Application.Progress;
+using JetBrains.Diagnostics;
 using JetBrains.DocumentModel;
 using JetBrains.ProjectModel;
 using JetBrains.ReSharper.Psi;
@@ -9,6 +10,7 @@ using JetBrains.ReSharper.Psi.Search;
 using JetBrains.ReSharper.Psi.Tree;
 using JetBrains.Rider.Model;
 using JetBrains.Util;
+using JetBrains.Util.Logging;
 using IReference = JetBrains.ReSharper.Psi.Resolve.IReference;
 
 namespace ComponentInvestigation.Rider
@@ -20,6 +22,11 @@ namespace ComponentInvestigation.Rider
     public class RelationFinder
     {
         private const int MaxSnippetLength = 400;
+
+        // TEMPORARY diagnostics: confirm whether ASP/WebForms markup references are found by the
+        // finder and, if so, why ToEntry was dropping them. Downgrade/remove once the WebForms
+        // markup-usage issue is verified fixed.
+        private static readonly ILogger ourLogger = Logger.GetLogger(typeof(RelationFinder));
 
         private readonly ISolution _solution;
 
@@ -49,9 +56,15 @@ namespace ComponentInvestigation.Rider
             // The type itself (instantiation, base type, fields/params of the type, generics).
             CollectFor(typeElement, MemberKind.Class, finder, searchDomain, declaringFiles, entries);
 
-            // Each member.
+            // Each member. Constructors are skipped: every instantiation (new Foo()) is already
+            // collected above under the type itself (MemberKind.Class). Enumerating the constructor
+            // separately would re-report those same call sites as a duplicate "Other: .ctor" group.
             foreach (var member in typeElement.GetMembers())
+            {
+                if (member is IConstructor)
+                    continue;
                 CollectFor(member, KindOf(member), finder, searchDomain, declaringFiles, entries);
+            }
 
             return new RelationsResult(typeElement.ShortName, entries);
         }
@@ -60,6 +73,9 @@ namespace ComponentInvestigation.Rider
             ISearchDomain searchDomain, ISet<IPsiSourceFile> excludedFiles, List<RelationEntry> entries)
         {
             var references = finder.FindReferences(element, searchDomain, NullProgressIndicator.Create());
+            ourLogger.Verbose("RelationFinder: '{0}' ({1}) -> {2} reference(s) found",
+                element.ShortName, kind, references.Length);
+
             foreach (var reference in references)
             {
                 try
@@ -68,11 +84,20 @@ namespace ComponentInvestigation.Rider
                     if (entry != null)
                         entries.Add(entry);
                 }
-                catch
+                catch (System.Exception e)
                 {
-                    // Skip a reference we can't map (e.g. generated / secondary PSI).
+                    // Skip a reference we can't map (e.g. generated / secondary PSI), but record it.
+                    ourLogger.Warn("RelationFinder: dropped reference to '{0}' (exception {1}: {2}), node={3}",
+                        element.ShortName, e.GetType().Name, e.Message,
+                        SafeNodeType(reference));
                 }
             }
+        }
+
+        private static string SafeNodeType(IReference reference)
+        {
+            try { return reference.GetTreeNode()?.GetType().Name ?? "<null>"; }
+            catch { return "<unavailable>"; }
         }
 
         private RelationEntry ToEntry(IReference reference, IDeclaredElement element, MemberKind kind,
@@ -80,19 +105,49 @@ namespace ComponentInvestigation.Rider
         {
             var node = reference.GetTreeNode();
             if (node == null)
+            {
+                ourLogger.Warn("RelationFinder: dropped reference to '{0}' (tree node null)", element.ShortName);
                 return null;
+            }
 
             var sourceFile = node.GetSourceFile();
-            if (sourceFile == null || excludedFiles.Contains(sourceFile))
+            if (sourceFile == null)
+            {
+                ourLogger.Warn("RelationFinder: dropped reference to '{0}' (source file null), node={1}",
+                    element.ShortName, node.GetType().Name);
+                return null;
+            }
+
+            if (excludedFiles.Contains(sourceFile))
                 return null;
 
+            // ASP/WebForms (and other secondary-PSI) references can report an invalid range on the
+            // tree node itself; fall back to the node's navigation range before giving up. Even when no
+            // range resolves we still emit the usage (best-effort line 1) so it appears in the list.
             var docRange = node.GetDocumentRange();
             if (!docRange.IsValid() || docRange.Document == null)
-                return null;
+                docRange = node.GetNavigationRange();
 
-            var document = docRange.Document;
-            var startOffset = docRange.TextRange.StartOffset;
-            var coords = document.GetCoordsByOffset(startOffset);
+            var hasRange = docRange.IsValid() && docRange.Document != null;
+            var document = hasRange ? docRange.Document : null;
+            var startOffset = hasRange ? docRange.TextRange.StartOffset : 0;
+            var length = hasRange ? docRange.TextRange.Length : 0;
+
+            int line;
+            string previewText;
+            if (document != null)
+            {
+                var coords = SafeCoords(document, startOffset);
+                line = (int)coords.Line + 1;
+                previewText = GetLineText(document, coords).Trim();
+            }
+            else
+            {
+                ourLogger.Warn("RelationFinder: no valid range for reference to '{0}' in '{1}' (node={2}); emitting at line 1",
+                    element.ShortName, sourceFile.Name, node.GetType().Name);
+                line = 1;
+                previewText = node.GetText().Trim();
+            }
 
             var location = sourceFile.GetLocation();
             string relative;
@@ -111,12 +166,25 @@ namespace ComponentInvestigation.Rider
                 filePath: location.FullPath,
                 relativePath: relative,
                 offset: startOffset,
-                length: docRange.TextRange.Length,
-                line: (int)coords.Line + 1,
+                length: length,
+                line: line,
                 containerName: GetContainerName(node),
                 accessKind: AccessClassifier.Classify(reference, element),
-                previewText: GetLineText(document, coords).Trim(),
+                previewText: previewText,
                 usageSnippet: GetSnippet(node));
+        }
+
+        /// <summary>Offset → line/column, degrading to the document start (line 1) when the offset is bad.</summary>
+        private static DocumentCoords SafeCoords(IDocument document, int offset)
+        {
+            try
+            {
+                return document.GetCoordsByOffset(offset);
+            }
+            catch
+            {
+                return document.GetCoordsByOffset(0);
+            }
         }
 
         private static MemberKind KindOf(ITypeMember member) => member switch

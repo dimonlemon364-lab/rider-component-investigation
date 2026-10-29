@@ -36,6 +36,9 @@ dependencies {
         }
         // Needed to compile against MarkdownLinkOpener (our overriding service). Optional at runtime.
         bundledPlugin("org.intellij.plugins.markdown")
+        // In Rider 2026.3 the `Project.solution` extension moved into this productModuleV2 content
+        // module; content modules aren't on the compile classpath unless requested explicitly.
+        bundledModule("intellij.rider.rdclient.dotnet")
         testFramework(TestFrameworkType.Platform)
     }
 }
@@ -46,9 +49,9 @@ intellijPlatform {
         version = providers.gradleProperty("version")
 
         ideaVersion {
-            // The ReSharper backend SDK is pinned to 2026.1, so the plugin targets only 2026.1.x.
+            // Lower bound kept at 261; upper bound extended to cover the 2026.3 (263.x) line.
             sinceBuild = "261"
-            untilBuild = "261.*"
+            untilBuild = "263.*"
         }
 
         vendor {
@@ -109,10 +112,10 @@ intellijPlatform {
     }
 }
 
-// Pin Java + Kotlin to the same, supported JVM (21). Foojay auto-provisions the JDK regardless
-// of which java/JBR launches Gradle (the 2025.3 platform targets JDK 21).
+// Pin Java + Kotlin to the same, supported JVM (25). Foojay auto-provisions the JDK regardless
+// of which java/JBR launches Gradle (the Rider 2026.3 platform is compiled for JDK 25).
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(25)
 }
 
 // --- Expose the Rider model jar so :protocol can run rdgen against it. -------------------

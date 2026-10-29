@@ -2,9 +2,10 @@
 
   <PropertyGroup>
     <!-- Pin to the ReSharper/Rider SDK that matches platformVersion in gradle.properties.
-         The SDK wave for Rider 2026.1 (target host build 261.x). Verify the exact build number
-         against the resolved Rider platform (see plan.md "Risks"). -->
-    <SdkVersion>2026.1.3</SdkVersion>
+         The SDK wave for Rider 2026.3 (target host build 263.x). 2026.3 is EAP-only for now,
+         so this tracks the matching EAP build of the Rider platform snapshot. Verify the exact
+         build number against the resolved Rider platform (see plan.md "Risks"). -->
+    <SdkVersion>2026.3.0-eap08</SdkVersion>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <TargetFramework>net8.0</TargetFramework>

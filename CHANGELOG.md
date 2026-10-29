@@ -4,6 +4,35 @@
 
 ## Unreleased
 
+## 1.0.10 - 2026-10-26
+
+### Fixed
+
+- **Binary compatibility with the 261/262 lines**: the Markdown export no longer opens the report
+  via `FileEditorManager.getInstance`, which on 2026.3 resolves through a Kotlin companion object
+  that doesn't exist on builds 261/262 (`NoSuchFieldError: FileEditorManager.Companion`). It now
+  uses `OpenFileDescriptor(...).navigate(...)`, a plain platform API available across the whole
+  `261`–`263.*` range.
+
+## 1.0.9 - 2026-10-26
+
+### Changed
+
+- **Rider 2026.3 (build 263) support**: the plugin now builds against the Rider 2026.3 platform and
+  its matching ReSharper/Rider SDK, and the compatibility range is extended through `263.*` (lower
+  bound unchanged at `261`). 2026.3 is currently EAP-only, so the platform and backend SDK track the
+  latest EAP build.
+
+## 1.0.8 - 2026-06-25
+
+### Fixed
+
+- **WebForms markup usages**: class usages from ASP.NET WebForms markup (e.g. `<uc:SomeClass …/>`
+  in `.aspx`/`.ascx`) are no longer dropped. References whose tree node reports an invalid document
+  range (common for ASP / secondary PSI) now fall back to the node's navigation range, and a usage
+  with a valid source file is always emitted (at line 1 if no range resolves) instead of being
+  silently skipped.
+
 ## 1.0.7 - 2026-06-17
 
 ### Added

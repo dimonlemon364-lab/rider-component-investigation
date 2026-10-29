@@ -19,10 +19,10 @@ plugins {
 // The rd-gen jar doesn't register a plugin id marker, so apply it by class.
 apply<RdGenPlugin>()
 
-// Pin Java + Kotlin to the same, supported JVM (21). Foojay auto-provisions the JDK, so the
-// build doesn't depend on whatever java/JBR is launching Gradle (e.g. JDK 26).
+// Pin Java + Kotlin to the same, supported JVM (25). Foojay auto-provisions the JDK, so the
+// build doesn't depend on whatever java/JBR is launching Gradle (Rider 2026.3 -> JDK 25).
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(25)
 }
 
 repositories {
